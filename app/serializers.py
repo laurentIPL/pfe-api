@@ -54,7 +54,8 @@ class Qrcode_EstablishmentSerializer(serializers.ModelSerializer):
         fields = (
             'qrcode_id',
             'establishment',
-            'nb_scans'
+            'nb_scans',
+            'name'
         )
 
 class PhonesSerializer(serializers.ModelSerializer):
