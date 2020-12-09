@@ -29,7 +29,7 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
-    '192.168.1.21:19006',
+    'http://192.168.1.21:19006',
 ]
 
 
