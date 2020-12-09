@@ -28,9 +28,10 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = [
+    'http://192.168.1.21:19006',
+]
 CORS_ALLOW_CREDENTIALS = True
-
-CORS_ORIGIN_WHITELIST = ['*']
 
 CORS_ALLOW_HEADERS = (
         'x-requested-with',
@@ -40,6 +41,8 @@ CORS_ALLOW_HEADERS = (
         'authorization',
         'x-csrftoken'
 )
+
+
 
 # Application definition
 
