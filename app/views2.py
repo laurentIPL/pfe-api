@@ -23,6 +23,7 @@ def handle_app_launched(request):
     if(req_phone_id is not None): 
         try:
             expositions_count = 0
+            checked_phones = []
             for this_phone_scan in Entries_Scans.objects.filter(phone_id = req_phone_id):
                 if (this_phone_scan.date_time > utc.localize(datetime.now() - timedelta(days=10))) & (this_phone_scan.date_time <= utc.localize(datetime.now())):
                     for same_qrcode_scan in Entries_Scans.objects.filter(qrcode_id = this_phone_scan.qrcode_id):
@@ -30,13 +31,14 @@ def handle_app_launched(request):
                             nearby_phones = Phones.objects.filter(phone_id = same_qrcode_scan.phone.phone_id)
                             for nearby_phone in nearby_phones:
                                 if (nearby_phone.sickness_date > this_phone_scan.date_time - timedelta(days=10)) & (nearby_phone.sickness_date <= this_phone_scan.date_time + timedelta(days=10)):
-                                    print("NEARBY PHONE : " + str(nearby_phone.phone_id))
-                                    expositions_count += 1
+                                    if nearby_phone not in checked_phones :
+                                        expositions_count += 1
+                                        checked_phones.append(nearby_phone)
             if expositions_count != 0:
-                return JsonResponse({'code': 3, 'expositions': expositions_count}, status=status.HTTP_201_CREATED)
+                return JsonResponse({'code': 3, 'expositions': expositions_count}, status=200)
             return JsonResponse({'code': 2}, status=status.HTTP_201_CREATED)
         except Phones.DoesNotExist:
-            return JsonResponse({'code': 0, 'error': 'DB operation error'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'code': 0, 'error': 'DB operation error'}, status=200)
     newPhoneId = str(uuid.uuid4())
     newPhone = {'phone_id': newPhoneId, 'sickness_date': utc.localize(datetime.min)}
     phone_serializer = PhonesSerializer(data = newPhone)
@@ -44,23 +46,24 @@ def handle_app_launched(request):
         try:
             phone_serializer.save()
         except Exception as e:
-            return JsonResponse({'code': 0, 'error': 'Phone couldnt be added in DB'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'code': 0, 'error': 'Phone couldnt be added in DB'}, status=200)
         print("NEW PHONE : " + str(newPhoneId))
-        return JsonResponse({'code': 1, 'id': newPhoneId}, status=status.HTTP_201_CREATED)
-    return JsonResponse({'code': 0, 'error': 'API error'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'code': 1, 'id': newPhoneId}, status=200)
+    return JsonResponse({'code': 0, 'error': 'API error'}, status=200)
 
 @api_view(['POST'])
 def insert_users_for_dev(request):
     try:
         docteur = User.objects.create_user('doc@gmail.com', 'doc@gmail.com', '12345678')
-        # docteur_id = User.objects.get(email = 'doc@gmail.com')
+        docteur_id = User.objects.filter(email = 'doc@gmail.com').first().id
         pierre = User.objects.create_user('p@gmail.com', 'p@gmail.com', '12345678')
+        pierre_id = User.objects.filter(email = 'p@gmail.com').first().id
         laurent = User.objects.create_user('l@gmail.com', 'l@gmail.com', '12345678')
+        laurent_id = User.objects.filter(email = 'l@gmail.com').first().id
         simon = User.objects.create_user('s@gmail.com', 's@gmail.com', '12345678')
-        marc = User.objects.create_user('m@gmail.com', 'm@gmail.com', '12345678')
-        colin = User.objects.create_user('c@gmail.com', 'c@gmail.com', '12345678')
+        simon_id = User.objects.filter(email = 's@gmail.com').first().id
         doctor = { 
-            'user_id' : 1,
+            'user_id' : docteur_id,
             'firstname' : '1',
             'lastname' : '1',
             'telephone' : '1',
@@ -71,7 +74,7 @@ def insert_users_for_dev(request):
             'mail' : '1'
         }
         establishmentP = {
-            'user_id' : 2,
+            'user_id' : pierre_id,
             'name' : '2',
             'telephone' : '2',
             'street_name' : '2',
@@ -81,7 +84,7 @@ def insert_users_for_dev(request):
             'mail' : '2'
         }
         establishmentL = {
-            'user_id' : 3,
+            'user_id' : laurent_id,
             'name' : '3',
             'telephone' : '3',
             'street_name' : '3',
@@ -91,7 +94,7 @@ def insert_users_for_dev(request):
             'mail' : '3'
         }
         establishmentS = {
-            'user_id' : 4,
+            'user_id' : simon_id,
             'name' : '4',
             'telephone' : '4',
             'street_name' : '4',
@@ -99,26 +102,6 @@ def insert_users_for_dev(request):
             'postcode' : '4',
             'tva' : '4',
             'mail' : '4'
-        }
-        establishmentM = {
-            'user_id' : 5,
-            'name' : '5',
-            'telephone' : '5',
-            'street_name' : '5',
-            'house_number' : 5,
-            'postcode' : '5',
-            'tva' : '5',
-            'mail' : '5'
-        }
-        establishmentC = {
-            'user_id' : 6,
-            'name' : '6',
-            'telephone' : '6',
-            'street_name' : '6',
-            'house_number' : 6,
-            'postcode' : '6',
-            'tva' : '6',
-            'mail' : '6'
         }
         if doctor is not None: 
             doctor_serializer = DoctorSerializer(data = doctor)
@@ -134,14 +117,6 @@ def insert_users_for_dev(request):
                 establishment_serializer.save()
         if establishmentS is not None: 
             establishment_serializer = EstablishmentSerializer(data = establishmentS)
-            if establishment_serializer.is_valid():
-                establishment_serializer.save()
-        if establishmentM is not None: 
-            establishment_serializer = EstablishmentSerializer(data = establishmentM)
-            if establishment_serializer.is_valid():
-                establishment_serializer.save()
-        if establishmentC is not None: 
-            establishment_serializer = EstablishmentSerializer(data = establishmentC)
             if establishment_serializer.is_valid():
                 establishment_serializer.save()
     except Exception as e:
