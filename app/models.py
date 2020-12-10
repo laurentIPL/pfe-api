@@ -1,10 +1,5 @@
 from django.db import models
 
-class Tutorial(models.Model):
-    title = models.CharField(max_length=70, blank=False, default='')
-    description = models.CharField(max_length=200,blank=False, default='')
-    published = models.BooleanField(default=False)
-
 class Qrcode_Establishment(models.Model):
     qrcode_id = models.CharField(max_length=100, blank=False, default='', primary_key = True)
     establishment = models.ForeignKey(
